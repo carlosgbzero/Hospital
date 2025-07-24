@@ -7,12 +7,15 @@ import org.springframework.stereotype.Service;
 
 import com.example.demo.Departamento.repository.Departamento;
 import com.example.demo.Departamento.repository.DepartamentoRepository;
+import com.example.demo.Departamento.repository.DepartmentWithUnitsDTO;
+import com.example.demo.Unidad.repository.UnidadRepository;
 
 @Service
 public class DepartamentoService {
-    
     @Autowired
     private DepartamentoRepository departamentoRepository;
+    @Autowired
+    private UnidadRepository unidadRepository;
 
     public void createDepartamento(Departamento departamento) {
         departamentoRepository.create(departamento);
@@ -32,5 +35,25 @@ public class DepartamentoService {
 
     public void deleteDepartamento(int id) {
         departamentoRepository.delete(id);
+    }
+
+    public List<DepartmentWithUnitsDTO> getDepartmentsWithUnits() {
+        return departamentoRepository.findAll().stream().map(dep -> {
+            var unidades = unidadRepository.findByDepartamentoId(dep.getDepartamentocod());
+            var unitsDTO = unidades.stream().map(uni ->
+                DepartmentWithUnitsDTO.UnitDTO.builder()
+                    .unidadCod(uni.getUnidadCod())
+                    .nombre(uni.getNombre())
+                    .ubicacion(uni.getUbicacion())
+                    .build()
+            ).toList();
+
+            return DepartmentWithUnitsDTO.builder()
+                .departamentoCod(dep.getDepartamentocod())
+                .nombre(dep.getNombre())
+                .hospitalCod(dep.getHospitalCod())
+                .units(unitsDTO)
+                .build();
+        }).toList();
     }
 }

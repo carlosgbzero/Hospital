@@ -33,4 +33,6 @@ public class PacienteService {
     public void deletePaciente(int id) {
         pacienteRepository.delete(id);
     }
+
+    
 }

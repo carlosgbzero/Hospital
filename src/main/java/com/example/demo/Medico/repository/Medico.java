@@ -4,15 +4,15 @@ import lombok.Data;
 
 @Data
 public class Medico {
-    private int medicocod;
+    private int medicoCod;
     private String nombre;
     private String apellidos;
     private String especialidad;
-    private String licenciamedica;
+    private String licenciaMedica;
     private String telefono;
-    private int anosexperiencia;
+    private int anosExperiencia;
     private String contacto;
-    private int hospitalcod;
-    private int departamentocod;
-    private int unidadcod;
+    private int hospitalCod;
+    private int departamentoCod;
+    private int unidadCod;
 }

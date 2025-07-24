@@ -20,9 +20,14 @@ public class DepartamentoController {
         departamentoService.createDepartamento(departamento);
     }
 
+
     @GetMapping
-    public List<Departamento> getAllDepartamentos() {
-        return departamentoService.getAllDepartamentos();
+    public List<?> getDepartamentos(@RequestParam(value = "includeUnits", required = false) Boolean includeUnits) {
+        if (Boolean.TRUE.equals(includeUnits)) {
+            return departamentoService.getDepartmentsWithUnits();
+        } else {
+            return departamentoService.getAllDepartamentos(); 
+        }
     }
 
     @GetMapping("/{id}")

@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.Customizer;
 
 import com.example.demo.auth.repository.Token;
 import com.example.demo.auth.repository.TokenRepository;
@@ -34,6 +35,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
         http
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req ->
                         req.requestMatchers("/auth/**")
@@ -70,7 +72,7 @@ public class SecurityConfig {
         if (storedToken != null) {
             storedToken.setIsExpired(true);
             storedToken.setIsRevoked(true);
-            tokenRepository.create(storedToken);
+            tokenRepository.update(storedToken, storedToken.getId());
             SecurityContextHolder.clearContext();
         }
     }
