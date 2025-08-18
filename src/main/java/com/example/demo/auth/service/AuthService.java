@@ -115,4 +115,24 @@ public class AuthService {
         }
         
     }
+
+    public Usuario getUsuarioByEmail(String email) {
+        return repository.findByEmail(email);
+    }
+
+    public void logout(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization header");
+        }
+        String jwt = authHeader.substring(7);
+        var tokenOpt = tokenRepository.findByToken(jwt);
+        if (tokenOpt.isPresent()) {
+            Token token = tokenOpt.get();
+            token.setIsRevoked(true);
+            token.setIsExpired(true);
+            tokenRepository.update(token, token.getId());
+        } else {
+            throw new UserNotFoundException("Token not found");
+        }
+    }
 }

@@ -1,8 +1,10 @@
 package com.example.demo.auth.repository;
 
+import com.example.demo.Usuario.repository.Usuario;
 import com.example.demo.config.Conexion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,8 +14,6 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.sql.DataSource;
-import javax.xml.crypto.Data;
-
 @Repository
 public class TokenRepository  {
 
@@ -31,6 +31,13 @@ public class TokenRepository  {
             PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
+            
+            String queryUser = "SELECT * FROM usuarios WHERE usuariocod = ?";
+            PreparedStatement stmtUser = conn.prepareStatement(queryUser);
+            stmtUser.setInt(1, userId);
+            ResultSet rsUser = stmtUser.executeQuery();
+            rsUser.next();
+
             while (rs.next()) {
                 Token token = Token.builder()
                         .id(rs.getInt("id"))
@@ -38,15 +45,20 @@ public class TokenRepository  {
                         .tokenType(Token.TokenType.valueOf(rs.getString("token_type")))
                         .isExpired(rs.getBoolean("is_expired"))
                         .isRevoked(rs.getBoolean("is_revoked"))
+                        .user(Usuario.builder()
+                            .nombreusuario(rsUser.getString("nombreusuario"))
+                            .email(rsUser.getString("email"))
+                            .nombre(rsUser.getString("nombre"))
+                            .apellidos(rsUser.getString("apellidos"))
+                            .build())
                         .build();
                 tokens.add(token);
-            }
+                }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return tokens;
     }
-
     
     public Optional<Token> findByToken(String tokenStr) {
         try (Connection conn = dataSource.getConnection()) {
@@ -55,12 +67,25 @@ public class TokenRepository  {
             stmt.setString(1, tokenStr);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
+                String queryUser = "SELECT * FROM usuarios WHERE usuariocod = ?";
+                PreparedStatement stmtUser = conn.prepareStatement(queryUser);
+                stmtUser.setInt(1, rs.getInt("user_id"));
+                ResultSet rsUser = stmtUser.executeQuery();
+                rsUser.next();
+
                 Token token = Token.builder()
                         .id(rs.getInt("id"))
                         .token(rs.getString("token"))
                         .tokenType(Token.TokenType.valueOf(rs.getString("token_type")))
                         .isExpired(rs.getBoolean("is_expired"))
                         .isRevoked(rs.getBoolean("is_revoked"))
+                        .user(Usuario.builder()
+                            .usuariocod(rsUser.getInt("usuariocod"))
+                            .nombreusuario(rsUser.getString("nombreusuario"))
+                            .email(rsUser.getString("email"))
+                            .nombre(rsUser.getString("nombre"))
+                            .apellidos(rsUser.getString("apellidos"))
+                            .build())
                         .build();
                 return Optional.of(token);
             }

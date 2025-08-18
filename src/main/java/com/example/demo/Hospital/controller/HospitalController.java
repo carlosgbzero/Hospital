@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.Hospital.repository.Hospital;
+import com.example.demo.Hospital.repository.HospitalFullDTO;
 import com.example.demo.Hospital.service.HospitalService;
 
 @RestController
@@ -21,7 +22,24 @@ public class HospitalController {
     }
 
     @GetMapping
-    public List<Hospital> getAllHospitals() {
+    public List<HospitalFullDTO> getAllHospitalsFull(
+        @RequestParam(required = false, defaultValue = "false") boolean includeDepartments,
+        @RequestParam(required = false, defaultValue = "false") boolean includeCounts
+    ) {
+        if (includeDepartments && includeCounts) {
+            return hospitalService.getHospitalsFull();
+        }
+        // Puedes agregar otras variantes según los parámetros
+        return hospitalService.getAllHospitals().stream()
+            .map(h -> HospitalFullDTO.builder()
+                .hospitalCod(h.getHospitalcod())
+                .nombre(h.getNombre())
+                .build())
+            .toList();
+    }
+
+    @GetMapping("/resumen")
+    public List<Hospital> getAllHospitalsResumen() {
         return hospitalService.getAllHospitals();
     }
 

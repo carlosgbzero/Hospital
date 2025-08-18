@@ -5,12 +5,12 @@ import lombok.Data;
 
 @Data
 public class Paciente {
-    private int historiaclinicanum;
+    private int historiaClinicaNum;
     private String nombre;
     private String apellidos;
-    private Date fechanacimiento;
+    private Date fechaNacimiento;
     private String direccion;
-    private int hospitalcod;
-    private int departamentocod;
-    private int unidadcod;
+    private int hospitalCod;
+    private int departamentoCod;
+    private int unidadCod;
 }

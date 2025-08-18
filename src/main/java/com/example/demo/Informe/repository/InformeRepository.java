@@ -145,4 +145,66 @@ public class InformeRepository implements CRUD<Informe> {
             e.printStackTrace();
         }
     }
+
+    public List<ReporteInformeDTO> obtenerInformeFiltrado(Integer hospitalcod, Integer departamentocod, Integer unidadcod) {
+        List<ReporteInformeDTO> resultados = new ArrayList<>();
+        StringBuilder query = new StringBuilder(
+            "SELECT h.nombre AS hospital, d.nombre AS departamento, u.ubicacion AS unidad, " +
+            "t.turnonum AS numero_turno, i.fechahora AS hora_informe, i.informenum AS numero_informe, " +
+            "i.totalactual AS pacientes_al_inicio, i.pacientesadmitidos AS pacientes_admitidos, " +
+            "i.pacientesaltas AS pacientes_dados_de_alta, i.pacientesatendidos AS pacientes_atendidos_desde_anterior, " +
+            "(SELECT SUM(i2.pacientesatendidos) FROM informes i2 " +
+            " JOIN turnos t2 ON i2.turnonum = t2.turnonum " +
+            " WHERE t2.unidadcod = t.unidadcod AND DATE(i2.fechahora) = DATE(i.fechahora)) AS pacientes_atendidos_dia " +
+            "FROM informes i " +
+            "JOIN turnos t ON i.turnonum = t.turnonum " +
+            "JOIN unidades u ON t.unidadcod = u.unidadcod " +
+            "JOIN departamentos d ON u.hospitalcod = d.hospitalcod " +
+            "JOIN hospitales h ON d.hospitalcod = h.hospitalcod " +
+            "WHERE 1=1 "
+        );
+        if (hospitalcod != null) {
+            query.append("AND h.hospitalcod = ? ");
+        }
+        if (departamentocod != null) {
+            query.append("AND d.departamentocod = ? ");
+        }
+        if (unidadcod != null) {
+            query.append("AND u.unidadcod = ? ");
+        }
+        query.append("ORDER BY h.nombre, d.nombre, u.ubicacion, i.fechahora DESC");
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query.toString())) {
+            int idx = 1;
+            if (hospitalcod != null) {
+                stmt.setInt(idx++, hospitalcod);
+            }
+            if (departamentocod != null) {
+                stmt.setInt(idx++, departamentocod);
+            }
+            if (unidadcod != null) {
+                stmt.setInt(idx++, unidadcod);
+            }
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                ReporteInformeDTO informeDTO = new ReporteInformeDTO();
+                informeDTO.setHospital(rs.getString("hospital"));
+                informeDTO.setDepartamento(rs.getString("departamento"));
+                informeDTO.setUnidad(rs.getString("unidad"));
+                informeDTO.setNumeroTurno(rs.getInt("numero_turno"));
+                informeDTO.setHoraInforme(rs.getTimestamp("hora_informe"));
+                informeDTO.setNumeroInforme(rs.getInt("numero_informe"));
+                informeDTO.setPacientesAlInicio(rs.getInt("pacientes_al_inicio"));
+                informeDTO.setPacientesAdmitidos(rs.getInt("pacientes_admitidos"));
+                informeDTO.setPacientesDadosDeAlta(rs.getInt("pacientes_dados_de_alta"));
+                informeDTO.setPacientesAtendidosDesdeAnterior(rs.getInt("pacientes_atendidos_desde_anterior"));
+                informeDTO.setPacientesAtendidosDia(rs.getInt("pacientes_atendidos_dia"));
+                resultados.add(informeDTO);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultados;
+    }
 }

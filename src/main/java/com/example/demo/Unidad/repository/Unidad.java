@@ -4,9 +4,9 @@ import lombok.Data;
 
 @Data
 public class Unidad {
-    private int hospitalcod;
-    private int departamentocod;
-    private int unidadcod;
+    private int hospitalCod;
+    private int departamentoCod;
+    private int unidadCod;
     private String nombre;
     private String ubicacion;
 }
